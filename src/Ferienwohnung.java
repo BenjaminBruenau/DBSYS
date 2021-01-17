@@ -1,3 +1,5 @@
+import oracle.jdbc.proxy.annotation.Pre;
+
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,7 +42,8 @@ public class Ferienwohnung {
                 "    WHERE '%s' < b2.datum_end AND b2.datum_end < '%s'\n" +
                 "    OR '%s' < b2.datum_start  AND b2.datum_start < '%s'\n" +
                 "    OR b2.datum_start < '%s' AND b2.datum_end > '%s'\n" +
-                ")\n", land, anDatum, abDatum, anDatum, anDatum, anDatum, abDatum);
+                "    OR b2.datum_start = '%s' AND b2.datum_end = '%s'" +
+                ")\n", land, anDatum, abDatum, anDatum, anDatum, anDatum, abDatum, anDatum, abDatum);
         try {
             if (ausstattung.equals("")) {
                 String query2 = query +
@@ -53,6 +56,29 @@ public class Ferienwohnung {
                         "GROUP BY f.fw_name\n" +
                         "ORDER BY FLOOR(AVG(b.sterne)) DESC NULLS LAST ");
             }
+            rs = ps.executeQuery();
+        } catch (SQLException s) {
+            actionOnException(s);
+        }
+        return rs;
+    }
+
+    public ResultSet getCountries() {
+        ResultSet rs = null;
+        try {
+            PreparedStatement ps = connect.prepareStatement("SELECT * FROM dbsys26.land");
+            rs = ps.executeQuery();
+
+        } catch (SQLException s) {
+            actionOnException(s);
+        }
+        return rs;
+    }
+
+    public ResultSet getFurnishing() {
+        ResultSet rs = null;
+        try {
+            PreparedStatement ps = connect.prepareStatement("SELECT * FROM dbsys26.ausstattung");
             rs = ps.executeQuery();
         } catch (SQLException s) {
             actionOnException(s);
@@ -84,7 +110,32 @@ public class Ferienwohnung {
         return result;
     }
 
-    private void actionOnException(SQLException s) {
+    public boolean confirmLogin(String mail, String pw) {
+        Boolean result = false;
+        try {
+            Statement st = connect.createStatement();
+            String query = String.format("SELECT mailadr, passwort FROM dbsys26.kunde k " +
+                    "WHERE k.mailadr = '%s' AND k.passwort = '%s'", mail, pw);
+            ResultSet rs = st.executeQuery(query);
+            if (!rs.next()) {
+                return false;
+            }
+            String[] s = new String[2];
+            s[0] = rs.getString("mailadr");
+            s[1] = rs.getString("passwort");
+
+            if (s[0].equals(mail) && s[1].equals(pw)) {
+                result = true;
+            }
+
+        } catch (SQLException s) {
+            System.out.println("Error while confirming Login");
+            actionOnException(s);
+        }
+        return result;
+    }
+
+    protected void actionOnException(SQLException s) {
         System.out.println("SQL Exception occurred while establishing connection to DBSYS: \n");
         System.out.println("SQL State: " + s.getSQLState());
         System.out.println("Message: " + s.getMessage());
