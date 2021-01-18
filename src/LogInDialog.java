@@ -4,15 +4,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class LogInDialog extends JDialog implements ActionListener {
-    private JTextField mailadress;
-    private JTextField password;
-    private JButton login;
-    private JButton cancel;
+    private final JTextField mailadress;
+    private final JTextField password;
+    private final JButton login;
     private String mail;
     private String pw;
 
     public LogInDialog(JFrame f, Ferienwohnung fw) {
-        super(f, "Einloggen mit Kundenkonto");
+        super(f, "Einloggen mit Kundenkonto", true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mailadress = new JTextField(10);
         password = new JTextField(10);
@@ -28,7 +27,7 @@ public class LogInDialog extends JDialog implements ActionListener {
             setVisible(false);
         });
 
-        cancel = new JButton("Abbrechen");
+        JButton cancel = new JButton("Abbrechen");
         cancel.addActionListener((ActionEvent e) -> setVisible(false));
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));

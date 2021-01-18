@@ -1,30 +1,25 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.*;
-import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 //ToDo: Falsche Eingaben schon in der GUI abfangen
 public class FerienwohnungGUI extends JFrame implements ActionListener {
-    private Ferienwohnung fw;
-    private DefaultListModel<String> searchResult = new DefaultListModel<>();
-    private JComboBox<String> countries;
-    private JComboBox<String> furnishing;
-    private JTextField arrival;
-    private JTextField departure;
-    private JButton search;
-    private JButton book;
-    private LogInDialog login;
-    private JMenuBar menu;
-    private JMenu m;
-    private JMenuItem log;
+    private final Ferienwohnung fw;
+    private final DefaultListModel<String> searchResult = new DefaultListModel<>();
+    private final JComboBox<String> countries;
+    private final JComboBox<String> furnishing;
+    private final JTextField arrival;
+    private final JTextField departure;
+    private final LogInDialog login;
 
     public FerienwohnungGUI() {
         fw = new Ferienwohnung();
         JPanel mainPanel = new JPanel();
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
         this.setTitle("Ferienwohnungen");
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -39,15 +34,14 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         });
         login = new LogInDialog(this, fw);
 
-        menu = new JMenuBar();
-        m = new JMenu("Einloggen");
+        //MenuBar to Log into the Customer Account
+        JMenuBar menu = new JMenuBar();
+        JMenu m = new JMenu("Einloggen");
         menu.add(m);
-        log = new JMenuItem("Login");
-        log.addActionListener((ActionEvent e) -> {
-            login.showDialog();
-        });
+        JMenuItem log = new JMenuItem("Login");
+        log.addActionListener((ActionEvent e) -> login.showDialog());
         m.add(log);
-       this.setJMenuBar(menu);
+        this.setJMenuBar(menu);
 
 
         JPanel suchen = new JPanel();
@@ -88,6 +82,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         furnishing.addActionListener(this);
         suchen.add(furnishing);
 
+        //Input Fields for arrival and departure Date
         JLabel anLabel = new JLabel("Ankunftsdatum");
         JLabel abLabel = new JLabel("Abreisedatum");
         String dateFormat = "DD.MM.YYYY";
@@ -100,7 +95,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
                 Object source = e.getSource();
                 if (source == arrival && arrival.getText().equals(dateFormat)) {
                     arrival.setText("");
-                } else if (source == departure && arrival.getText().equals(dateFormat)) {
+                } else if (source == departure && departure.getText().equals(dateFormat)) {
                     departure.setText("");
                 }
             }
@@ -117,17 +112,19 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         suchen.add(abLabel);
         suchen.add(arrival);
         suchen.add(departure);
+        suchen.setPreferredSize(new Dimension(100, 30));
 
+        //Build Search Panel together
         JPanel firstPanel =  new JPanel();
         firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.X_AXIS));
-        search = new JButton("Suchen");
+        JButton search = new JButton("Suchen");
         search.addActionListener((ActionEvent e) ->{
             ResultSet rs = fw.searchFerienwohnung(countries.getSelectedItem().toString(), arrival.getText(),
                     departure.getText(), furnishing.getSelectedItem().toString());
             try {
                 while (rs.next()) {
                     rs.getInt("bewertung");
-                    //Alternativ: if r.getInt == 0
+                    //Alternative: if r.getInt == 0
                     if (rs.wasNull()) {
                         searchResult.addElement(rs.getString("name") + " " + "NB");
                     } else {
@@ -143,25 +140,22 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
 
 
         JPanel ausgabe = new JPanel();
+        ausgabe.setBorder(BorderFactory.createTitledBorder("Ferienwohnung--Bewertung"));
         ausgabe.setLayout(new GridLayout());
         JList<String> list = new JList<>(searchResult);
-        list.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-
-            }
-        });
+        list.addListSelectionListener(e -> {});
         list.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(list);
         ausgabe.add(scrollPane);
+        list.setPreferredSize(new Dimension(20, 100));
 
-
+        //Build Output/Booking Panel together
         JPanel secondPanel = new JPanel();
         firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.X_AXIS));
-        book = new JButton("Buchen");
+        JButton book = new JButton("Buchen");
         book.addActionListener((ActionEvent e) -> {
             if (login.getMail() == null || login.getPw() == null) {
-                JOptionPane.showMessageDialog(secondPanel, "Bitte loggen sie sich zuerst ein");
+                JOptionPane.showMessageDialog(mainPanel, "Bitte loggen sie sich zuerst ein");
                 return;
             }
             String[] array = list.getSelectedValue().split(" ");
@@ -177,6 +171,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         });
         secondPanel.add(ausgabe);
         secondPanel.add(book);
+        secondPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
 
         mainPanel.add(firstPanel);
@@ -188,9 +183,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         setVisible(true);
     }
     @Override
-    public void actionPerformed(ActionEvent e) {
-
-    }
+    public void actionPerformed(ActionEvent e) {}
 
     public static void main(String[] args) {
         new FerienwohnungGUI();
