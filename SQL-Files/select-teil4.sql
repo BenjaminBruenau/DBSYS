@@ -1,12 +1,15 @@
  
                           
-/* Teil 4.1 */              
+/* Teil 4.1 */
+
 SELECT a.stadt, COUNT(*) AS "Anzahl Ferienwohnungen"
 FROM dbsys26.ferienwohnung f
 INNER JOIN dbsys26.adresse a ON a.adress_ID = f.adress_ID
 GROUP BY a.stadt;
 
+
 /* Teil 4.2 */
+
 SELECT f.fw_name
 FROM dbsys26.ferienwohnung f
 INNER JOIN dbsys26.adresse a ON a.adress_ID = f.adress_ID 
@@ -16,29 +19,15 @@ WHERE a.landname = 'Spanien' AND 4 < (select AVG(b.sterne)
 
 
 /* Teil 4.3 */
+
 Select f.fw_name
 FROM dbsys26.ferienwohnung f
 LEFT JOIN dbsys26.buchung b ON f.fw_name = b.fw_name
 WHERE b.fw_name IS NULL;
 
-/* Teil 4.4 abenteuerlich
-SELECT f.fw_name, COUNT(be.au_name) AS "Anzahl Ausstattungen"
-FROM dbsys26.ferienwohnung f
-INNER JOIN dbsys26.besitzt be ON f.fw_name = be.fw_name
-GROUP BY f.fw_name
-HAVING COUNT(be.au_name) = 
-(Select MAX(c) from
-(
-    SELECT COUNT(be.au_name) c
-    FROM dbsys26.besitzt be
-    WHERE f.fw_name = be.fw_name
-    GROUP BY f.fw_name
-)
-)
-ORDER BY COUNT(be.au_name) desc;
-*/
 
-/* Teil 4.4 verbessert */
+/* Teil 4.4 */
+
 CREATE VIEW Max_Ausstattungen( fw_name, anzahl)
 AS
 SELECT be.fw_name, COUNT(*)
@@ -51,7 +40,9 @@ WHERE m.anzahl = (SELECT MAX(anzahl)
                 FROM  Max_Ausstattungen);
 
 
+
 /* Teil 4.5 */
+
 SELECT l.land_name, NVL(COUNT(b.buchungsnr),0) AS "Anzahl Reservierungen pro Land"
 FROM dbsys26.land l
 LEFT JOIN dbsys26.adresse a  ON a.landname = l.land_name
@@ -60,12 +51,14 @@ LEFT JOIN dbsys26.buchung b ON b.fw_name = f.fw_name
 GROUP BY l.land_name
 ORDER BY NVL(COUNT(b.buchungsnr),0) DESC;
 
+
 /* Teil 4.6 */
+
 Select f.fw_name, FLOOR(AVG(b.sterne))
 FROM dbsys26.ferienwohnung f
 LEFT JOIN dbsys26.buchung b ON b.fw_name = f.fw_name
 LEFT JOIN dbsys26.adresse a ON a.adress_ID = f.adress_ID
-INNER JOIN dbsys26.besitzt be ON be.fw_name = f.fw_name
+LEFT JOIN dbsys26.besitzt be ON be.fw_name = f.fw_name
 WHERE a.landname = 'Spanien' 
 AND f.fw_name NOT IN 
 (

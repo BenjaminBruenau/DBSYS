@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 //ToDo: Falsche Eingaben schon in der GUI abfangen
 public class FerienwohnungGUI extends JFrame implements ActionListener {
@@ -96,8 +100,10 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
             public void keyTyped(KeyEvent e) {
                 Object source = e.getSource();
                 if (source == arrival && arrival.getText().equals(dateFormat)) {
+                    arrival.setForeground(Color.BLACK);
                     arrival.setText("");
                 } else if (source == departure && departure.getText().equals(dateFormat)) {
+                    departure.setForeground(Color.BLACK);
                     departure.setText("");
                 }
             }
@@ -121,7 +127,22 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.X_AXIS));
         JButton search = new JButton("Suchen");
         search.addActionListener((ActionEvent e) ->{
+            if (!controlDateFormatInput(arrival.getText())) {
+                arrival.setForeground(Color.RED);
+                return;
+            } else if (!controlDateFormatInput(departure.getText())) {
+                departure.setForeground(Color.RED);
+                return;
+            }
+            arrival.setForeground(Color.BLACK);
+            departure.setForeground(Color.BLACK);
             searchResult.clear();
+
+            if (!controlDateInput(arrival.getText(), departure.getText())) {
+                JOptionPane.showMessageDialog(mainPanel, "Das Abreisedatum muss nach dem Ankunftsdatum sein \n" +
+                        "und die Daten dürfen nicht in der Vergangenheit liegen");
+                return;
+            }
             ResultSet rs = fw.searchFerienwohnung(countries.getSelectedItem().toString(), arrival.getText(),
                     departure.getText(), furnishing.getSelectedItem().toString());
             try {
@@ -162,6 +183,10 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(mainPanel, "Bitte loggen sie sich zuerst ein");
                 return;
             }
+            if (list.isSelectionEmpty()) {
+                JOptionPane.showMessageDialog(mainPanel, "Bitte wählen sie vor dem Buchen eine Ferienwohnung aus");
+                return;
+            }
             String[] array = list.getSelectedValue().split("  ");
             String fwName = array[0];
             if (fw.bookFerienwohnung(arrival.getText(), departure.getText(), fwName, login.getMail()) == 0) {
@@ -188,6 +213,24 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
     }
     @Override
     public void actionPerformed(ActionEvent e) {}
+
+    private boolean controlDateFormatInput(String input) {
+        String pattern = "[0-3][0-9]\\.[0-1][0-9]\\.[0-2][0-9][0-9][0-9]";
+        return input.matches(pattern);
+    }
+    private boolean controlDateInput(String a, String d) {
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        try {
+            Date arrivalDate = dateFormat.parse(a);
+            Date departureDate = dateFormat.parse(d);
+            String t = dateFormat.format(new Date());
+            Date today = dateFormat.parse(t);
+            return departureDate.after(arrivalDate) && arrivalDate.after(today);
+        } catch (ParseException pe) {
+            System.out.println("Error while parsing InputDates");
+        }
+        return false;
+    }
 
     public static void main(String[] args) {
         new FerienwohnungGUI();
