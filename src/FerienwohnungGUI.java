@@ -9,7 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-//ToDo: Falsche Eingaben schon in der GUI abfangen
+
 public class FerienwohnungGUI extends JFrame implements ActionListener {
     private final Ferienwohnung fw;
     private final DefaultListModel<String> searchResult = new DefaultListModel<>();
