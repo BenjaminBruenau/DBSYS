@@ -18,12 +18,12 @@ public class LogInDialog extends JDialog implements ActionListener {
 
         login = new JButton("Einloggen");
         login.addActionListener((ActionEvent e) -> {
+            this.mail = mailadress.getText();
+            this.pw = password.getText();
             if (!fw.confirmLogin(getMail(), getPw())) {
                 JOptionPane.showMessageDialog(login, "Ungültige Mailadresse oder Passwort");
                 return;
             }
-            this.mail = mailadress.getText();
-            this.pw = password.getText();
             setVisible(false);
         });
 

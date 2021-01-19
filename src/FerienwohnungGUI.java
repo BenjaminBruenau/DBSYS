@@ -58,6 +58,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
             while (rc.next()) {
                 countries.addItem(rc.getString("land_name"));
             }
+            rc.close();
         } catch (SQLException s) {
             System.out.println("Error while trying to initialize Country Selection");
             fw.actionOnException(s);
@@ -74,6 +75,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
             while (rf.next()) {
                 furnishing.addItem(rf.getString("au_name"));
             }
+            rf.close();
         } catch (SQLException s) {
             System.out.println("Error while trying to initialize Furnishing Selection");
             fw.actionOnException(s);
@@ -119,6 +121,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
         firstPanel.setLayout(new BoxLayout(firstPanel, BoxLayout.X_AXIS));
         JButton search = new JButton("Suchen");
         search.addActionListener((ActionEvent e) ->{
+            searchResult.clear();
             ResultSet rs = fw.searchFerienwohnung(countries.getSelectedItem().toString(), arrival.getText(),
                     departure.getText(), furnishing.getSelectedItem().toString());
             try {
@@ -126,11 +129,12 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
                     rs.getInt("bewertung");
                     //Alternative: if r.getInt == 0
                     if (rs.wasNull()) {
-                        searchResult.addElement(rs.getString("name") + " " + "NB");
+                        searchResult.addElement(rs.getString("name") + "  " + "NB");
                     } else {
-                        searchResult.addElement(rs.getString("name") + " " + rs.getInt("bewertung") );
+                        searchResult.addElement(rs.getString("name") + "  " + rs.getInt("bewertung") );
                     }
                 }
+                rs.close();
             } catch (SQLException s) {
                 fw.actionOnException(s);
             }
@@ -158,7 +162,7 @@ public class FerienwohnungGUI extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(mainPanel, "Bitte loggen sie sich zuerst ein");
                 return;
             }
-            String[] array = list.getSelectedValue().split(" ");
+            String[] array = list.getSelectedValue().split("  ");
             String fwName = array[0];
             if (fw.bookFerienwohnung(arrival.getText(), departure.getText(), fwName, login.getMail()) == 0) {
                 JOptionPane.showMessageDialog(mainPanel, "Buchung fehlgeschlagen");

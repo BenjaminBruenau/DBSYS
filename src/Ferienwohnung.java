@@ -1,5 +1,3 @@
-import oracle.jdbc.proxy.annotation.Pre;
-
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,7 +31,7 @@ public class Ferienwohnung {
                 "FROM dbsys26.ferienwohnung f\n" +
                 "LEFT JOIN dbsys26.buchung b ON b.fw_name = f.fw_name\n" +
                 "LEFT JOIN dbsys26.adresse a ON a.adress_ID = f.adress_ID\n" +
-                "INNER JOIN dbsys26.besitzt be ON be.fw_name = f.fw_name\n" +
+                "LEFT JOIN dbsys26.besitzt be ON be.fw_name = f.fw_name\n" +
                 "WHERE a.landname = '%s' \n" +
                 "AND f.fw_name NOT IN \n" +
                 "(\n" +
@@ -45,17 +43,18 @@ public class Ferienwohnung {
                 "    OR b2.datum_start = '%s' AND b2.datum_end = '%s'" +
                 ")\n", land, anDatum, abDatum, anDatum, anDatum, anDatum, abDatum, anDatum, abDatum);
         try {
+            String query2;
             if (ausstattung.equals("")) {
-                String query2 = query +
+                query2 = query +
                         "GROUP BY f.fw_name\n" +
                         "ORDER BY FLOOR(AVG(b.sterne)) DESC NULLS LAST";
-                ps = connect.prepareStatement(query2);
             } else {
-                ps = connect.prepareStatement(query +
+                query2 = query +
                         "AND be.au_name = '" + ausstattung + "'\n" +
                         "GROUP BY f.fw_name\n" +
-                        "ORDER BY FLOOR(AVG(b.sterne)) DESC NULLS LAST ");
+                        "ORDER BY FLOOR(AVG(b.sterne)) DESC NULLS LAST ";
             }
+            ps = connect.prepareStatement(query2);
             rs = ps.executeQuery();
         } catch (SQLException s) {
             actionOnException(s);
@@ -120,6 +119,9 @@ public class Ferienwohnung {
             if (!rs.next()) {
                 return false;
             }
+            result = true;
+            rs.close();
+            /*
             String[] s = new String[2];
             s[0] = rs.getString("mailadr");
             s[1] = rs.getString("passwort");
@@ -127,7 +129,7 @@ public class Ferienwohnung {
             if (s[0].equals(mail) && s[1].equals(pw)) {
                 result = true;
             }
-
+             */
         } catch (SQLException s) {
             System.out.println("Error while confirming Login");
             actionOnException(s);
